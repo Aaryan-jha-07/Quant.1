@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setSearchQuery, getPredictions } from './store/marketDataSlice';
-import VolatilityChart from './components/VolatilityChart';
+import VolatilityChart from './components/volatilityChart';
 import PortfolioTable from './components/PortfolioTable';
 
 function App() {
