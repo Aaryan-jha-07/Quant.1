@@ -1,144 +1,151 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setSearchQuery, getPredictions } from './store/marketDataSlice';
-import VolatilityChart from './components/volatilityChart';
+import VolatilityChart from './components/volatilityChart'; // Correct lowercase 'v' for Vercel
 import PortfolioTable from './components/PortfolioTable';
 
 function App() {
-    const dispatch = useDispatch();
-    const { searchQuery, neuralNetResults, isLoading } = useSelector((state) => state.marketData);
-    const [inputValue, setInputValue] = useState(searchQuery);
-    
-    // Dynamic sliders state
-    const [params, setParams] = useState({ S: 4500, K: 4500, T: 0.25, r: 0.04, sigma: 0.15 });
+  const dispatch = useDispatch();
+  
+  // Pulling state from your Redux store
+  const { searchQuery, neuralNetResults, isLoading } = useSelector((state) => state.marketData);
+  const [inputValue, setInputValue] = useState(searchQuery);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (inputValue !== searchQuery) dispatch(setSearchQuery(inputValue));
-        }, 500); 
-        return () => clearTimeout(timer);
-    }, [inputValue, searchQuery, dispatch]);
+  // Dynamic sliders state for the Black-Scholes/Neural parameters
+  const [params, setParams] = useState({ 
+    S: 4500, 
+    K: 4500, 
+    T: 0.25, 
+    r: 0.04, 
+    sigma: 0.15 
+  });
 
-    const handleRunModel = () => {
-        dispatch(getPredictions({ ...params, S: params.K })); // Sync S with K for the UI demo
-    };
+  // Debounce logic: Only update Redux search query after user stops typing for 500ms
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (inputValue !== searchQuery) {
+        dispatch(setSearchQuery(inputValue));
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [inputValue, searchQuery, dispatch]);
 
-    return (
-        <div className="min-h-screen bg-[#f4f1ea] selection:bg-[#111] selection:text-[#f4f1ea]">
-            <header className="pt-10 px-6 md:px-12 border-b-[12px] border-[#111]">
-                <h1 className="text-[9vw] leading-[0.8] font-black uppercase tracking-tighter text-[#111] ">
-                    Quant<span className="italic text-[#8c7b65]">-</span>Net
-                </h1>
-                <div className="flex flex-col md:flex-row justify-between items-end mt-8 pb-6 border-b border-[#111]">
-                    <h2 className="text-3xl md:text-5xl italic text-[#4a3f32]">The Terminal Layout</h2>
-                    <div className="text-right mt-4 md:mt-0 font-sans uppercase tracking-[0.3em] text-xs font-bold text-[#111]">
-                        <p>Arbitrage-Free Neural Options Pricing</p>
-                        <p className="text-[#8c7b65]">Issue No. 01 / MMXVI</p>
-                    </div>
-                </div>
-            </header>
+  // Handle slider changes
+  const handleParamChange = (e) => {
+    const { name, value } = e.target;
+    setParams(prev => ({ ...prev, [name]: parseFloat(value) }));
+  };
 
-            <main className="flex flex-col">
-                <div className="grid grid-cols-1 lg:grid-cols-12 border-b-[12px] border-[#111]">
-                    
-                    {/* Left Column Controls */}
-                    <div className="col-span-1 lg:col-span-4 p-8 md:p-12 border-r-[3px] border-[#111] bg-[#fdfbf7]">
-                        <div className="mb-10">
-                            <h3 className="text-7xl font-black uppercase leading-none tracking-tighter mb-4">Edit O.</h3>
-                            <p className="font-sans text-sm font-bold uppercase tracking-widest text-[#8c7b65] border-b-2 border-[#111] pb-2">
-                                System Parameters
-                            </p>
-                        </div>
+  return (
+    <div className="min-h-screen bg-[#0a0a0a] text-white p-4 md:p-8 font-sans selection:bg-[#C1A173] selection:text-black">
+      
+      {/* --- MAIN TERMINAL CONTAINER --- */}
+      <div className="max-w-6xl mx-auto border border-[#C1A173]/30 p-6 md:p-12 relative">
+        
+        {/* Decorative Gold Corners */}
+        <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-[#C1A173]"></div>
+        <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-[#C1A173]"></div>
+        <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-[#C1A173]"></div>
+        <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-[#C1A173]"></div>
 
-                        <p className="text-lg leading-relaxed mb-10 text-justify text-[#2c241b]">
-                            <span className="float-left text-6xl leading-[0.8] pr-2 font-black">T</span>
-                            o run the deep learning inference engine, the analyst must adjust the variables below. The network utilizes an Arbitrage-Free Loss function to strictly guarantee financial constraints across the pricing surface.
-                        </p>
+        {/* --- HEADER --- */}
+        <header className="mb-12 text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-6">
+          <h1 className="text-xl md:text-2xl tracking-[0.3em] text-[#C1A173] uppercase font-light">
+            Neural Calculation Engine
+          </h1>
+          
+          {/* Search/Ticker Input */}
+          <div className="w-full md:w-64 relative">
+            <input 
+              type="text" 
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="ENTER TICKER..."
+              className="w-full bg-transparent border-b border-[#C1A173]/50 py-2 text-white placeholder-gray-600 focus:outline-none focus:border-[#C1A173] uppercase tracking-widest text-sm transition-colors"
+            />
+          </div>
+        </header>
 
-                        <div className="mb-8">
-                            <label className="block font-sans text-xs font-bold uppercase tracking-widest mb-2 text-[#111]">Target Asset</label>
-                            <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value.toUpperCase())} placeholder="Enter Ticker..."
-                                className="w-full bg-transparent border-b-2 border-[#111] py-2 text-2xl font-bold uppercase focus:outline-none focus:border-[#8c7b65] transition-colors font-sans" />
-                        </div>
+        {/* --- STATS SECTION (MOBILE FIXED) --- */}
+        <div className="flex flex-wrap justify-between gap-6 mb-12 w-full border-b border-[#C1A173]/20 pb-8">
+          
+          <div className="flex flex-col">
+            <span className="text-xs tracking-widest text-[#C1A173] uppercase mb-2">Price</span>
+            <span className="text-4xl md:text-6xl font-serif text-white tracking-tighter">
+              {/* Fallback to 0.0000 if data is loading/missing */}
+              {neuralNetResults?.price?.toFixed(4) || "0.0000"}
+            </span>
+          </div>
 
-                        {/* Dynamic Sliders */}
-                        <div className="space-y-6 mb-8 border-y-2 border-[#111] py-6">
-                            <div>
-                                <div className="flex justify-between font-sans text-xs font-bold uppercase tracking-widest text-[#111] mb-2">
-                                    <span>Asset / Strike Price (S, K)</span>
-                                    <span className="text-[#8c7b65]">${params.K}</span>
-                                </div>
-                                <input type="range" min="10" max="6000" step="1" value={params.K} 
-                                    onChange={(e) => setParams({...params, K: parseFloat(e.target.value)})}
-                                    className="w-full accent-[#2c241b]" />
-                            </div>
-                            <div>
-                                <div className="flex justify-between font-sans text-xs font-bold uppercase tracking-widest text-[#111] mb-2">
-                                    <span>Time to Expiry (Years)</span>
-                                    <span className="text-[#8c7b65]">{params.T}</span>
-                                </div>
-                                <input type="range" min="0.05" max="2.0" step="0.05" value={params.T} 
-                                    onChange={(e) => setParams({...params, T: parseFloat(e.target.value)})}
-                                    className="w-full accent-[#2c241b]" />
-                            </div>
-                            <div>
-                                <div className="flex justify-between font-sans text-xs font-bold uppercase tracking-widest text-[#111] mb-2">
-                                    <span>Implied Volatility (σ)</span>
-                                    <span className="text-[#8c7b65]">{(params.sigma * 100).toFixed(0)}%</span>
-                                </div>
-                                <input type="range" min="0.05" max="0.80" step="0.01" value={params.sigma} 
-                                    onChange={(e) => setParams({...params, sigma: parseFloat(e.target.value)})}
-                                    className="w-full accent-[#2c241b]" />
-                            </div>
-                        </div>
+          <div className="flex flex-col">
+            <span className="text-xs tracking-widest text-[#C1A173] uppercase mb-2">Delta</span>
+            <span className="text-4xl md:text-6xl font-serif text-white tracking-tighter">
+              {neuralNetResults?.delta?.toFixed(4) || "0.0000"}
+            </span>
+          </div>
 
-                        <button onClick={handleRunModel} disabled={isLoading}
-                            className="w-full bg-[#111] hover:bg-[#2c241b] text-[#f4f1ea] font-sans uppercase tracking-[0.2em] text-sm font-bold py-5 transition-all border-2 border-transparent disabled:opacity-50">
-                            {isLoading ? 'Computing...' : 'Calculate Projection'}
-                        </button>
-                    </div>
+          <div className="flex flex-col">
+            <span className="text-xs tracking-widest text-[#C1A173] uppercase mb-2">Gamma</span>
+            <span className="text-4xl md:text-6xl font-serif text-white tracking-tighter">
+              {neuralNetResults?.gamma?.toFixed(4) || "0.0000"}
+            </span>
+          </div>
 
-                    {/* Right Column Terminal */}
-                    <div className="col-span-1 lg:col-span-8 bg-[#0f0f0f] text-[#f4f1ea] p-6 md:p-10 relative overflow-hidden">
-                        <div className="border-5 border-double border-[#c5a059] h-full w-full p-10 md:p-14 relative flex flex-col">
-                            <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-[#c5a059]"></div>
-                            <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-[#c5a059]"></div>
-                            <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-[#c5a059]"></div>
-                            <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-[#c5a059]"></div>
-
-                            <h3 className="font-sans text-sm font-bold uppercase tracking-[0.3em] text-[#c5a059] text-center mb-10 border-b border-[#c5a059]/30 pb-4">
-                                Neural Calculation Engine
-                            </h3>
-
-                            <div className="grid grid-cols-3 gap-8 mb-12">
-                                {['Price', 'Delta', 'Gamma'].map((greek, idx) => (
-                                    <div key={greek} className={`text-center ${idx !== 2 ? 'border-r border-[#c5a059]/20' : ''}`}>
-                                        <p className="font-sans text-xs uppercase tracking-widest text-[#8c7b65] mb-2">{greek}</p>
-                                        <p className="text-4xl md:text-5xl font-serif">
-                                            {neuralNetResults[greek.toLowerCase()]?.toFixed(4) || "0.0000"}
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="flex-grow bg-[#1a1a1a] border border-[#c5a059]/30 p-4 relative">
-                                <p className="absolute top-4 left-4 font-sans text-[10px] uppercase tracking-widest text-[#8c7b65] z-10">Fig 1. Volatility Surface</p>
-                                <VolatilityChart />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <section className="p-6 md:p-12 bg-[#fdfbf7]">
-                    <div className="flex justify-between items-baseline border-b-[6px] border-[#111] pb-4 mb-8">
-                        <h2 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter">Manifest</h2>
-                        <p className="font-sans text-xs font-bold uppercase tracking-widest text-[#8c7b65]">Active Portfolios</p>
-                    </div>
-                    <PortfolioTable />
-                </section>
-            </main>
         </div>
-    );
+
+        {/* --- GRID LAYOUT FOR CHART & CONTROLS --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          
+          {/* Left Side: Volatility Chart (Spans 2 columns on large screens) */}
+          <div className="lg:col-span-2">
+            <VolatilityChart data={neuralNetResults?.chartData || []} />
+          </div>
+
+          {/* Right Side: Parameter Sliders */}
+          <div className="flex flex-col gap-6">
+            <h3 className="text-xs tracking-widest text-gray-500 uppercase mb-4">
+              Model Parameters
+            </h3>
+
+            {/* Reusable Slider Block */}
+            {Object.keys(params).map((key) => (
+              <div key={key} className="flex flex-col gap-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm tracking-widest text-[#C1A173] uppercase">{key}</span>
+                  <span className="text-sm font-serif">{params[key]}</span>
+                </div>
+                <input 
+                  type="range" 
+                  name={key}
+                  min={key === 'S' || key === 'K' ? 1000 : 0}
+                  max={key === 'S' || key === 'K' ? 6000 : 1}
+                  step={key === 'S' || key === 'K' ? 10 : 0.01}
+                  value={params[key]}
+                  onChange={handleParamChange}
+                  className="w-full accent-[#C1A173] h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+            ))}
+
+            {/* Calculate Button */}
+            <button 
+              onClick={() => dispatch(getPredictions(params))}
+              disabled={isLoading}
+              className="mt-8 w-full border border-[#C1A173] text-[#C1A173] hover:bg-[#C1A173] hover:text-black py-4 text-xs tracking-[0.2em] uppercase transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? 'Computing...' : 'Recalculate Model'}
+            </button>
+          </div>
+        </div>
+
+        {/* --- PORTFOLIO TABLE --- */}
+        <div className="mt-16">
+          <PortfolioTable />
+        </div>
+
+      </div>
+    </div>
+  );
 }
 
 export default App;
