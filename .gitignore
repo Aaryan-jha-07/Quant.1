@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pth
+
+# Node / Frontend
+node_modules/
+build/
+.env
+
+# Data (Optional, if you don't want to push large CSVs)
+data/raw/
